@@ -4,8 +4,8 @@ class DB:
 
     conn = None
 
-    def __init__(self, name):
-        self.conn = sqlite3.connect(name)
+    def __init__(self, settings):
+        self.conn = sqlite3.connect(settings['PATH'])
         self.conn.row_factory = self.dictFactory
         self.c = self.conn.cursor()
 
