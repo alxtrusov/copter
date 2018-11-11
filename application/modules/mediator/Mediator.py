@@ -12,11 +12,7 @@ class Mediator:
         self.events.clear()
 
     def getTypes(self):
-        return self.TYPES.keys()
-
-    # получить название события
-    #def get(self, name):
-        #return self.TYPES.get(name)
+        return self.TYPES
 
     # дернуть функции, чтобы исполнялись
     def call(self, name, data = None):

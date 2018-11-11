@@ -1,12 +1,14 @@
 class Router:
 
-    def __init__(self, app, web):
+    def __init__(self, app, web, mediator):
         self.web = web
+        self.mediator = mediator
+        self.TYPES = mediator.getTypes()
         routes = [
             ('GET', '/api/test', self.testHandler),
-            ('GET', '/api/sqr/{value}', self.sqrHandler),
-            ('*', '/{name}', self.defaultHandler),
-            ('*', '/', self.staticHandler)
+            ('GET', '/api/makeOrder/{start}/{finish}', self.makeOrder), # запрос на выполнение приказа
+            ('*', '/{name}', self.defaultHandler), # дефолтный хендлер
+            ('*', '/', self.staticHandler) # статика
         ]
         for route in routes:
             app.router.add_route(route[0], route[1], route[2])
@@ -14,12 +16,17 @@ class Router:
     async def testHandler(self, request):
         return self.web.json_response({ 'result': 'Hello!' })
 
-    async def sqrHandler(self, request):
-        value = float(request.match_info.get('value'))
-        return self.web.json_response({ 'result': value * value })
+    async def makeOrder(self, request):
+        start  = request.match_info.get('start')
+        finish = request.match_info.get('finish')
+        if start.isdigit() and finish.isdigit():
+            self.mediator.call(self.TYPES['MAKE_ORDER'], { 'start': int(start), 'finish': int(finish) }) # послать запрос на выполнение заказа
+            return self.web.json_response({ 'result': { 'start': int(start), 'finish': int(finish) } }) # выплюнуть ответ
+        return self.web.json_response({ 'error': 'order points must be numeric' })
 
     async def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')
 
     async def defaultHandler(self, request):
         return self.web.json_response({ 'result': 'no route' })
+        
