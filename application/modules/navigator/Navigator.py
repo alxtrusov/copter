@@ -52,18 +52,24 @@ class Navigator:
         return None
 
     # сделать полетное задание
+    # normal - полет туда/обратно
+    # high - полет туда/обратно перед всеми normal (вне очереди)
+    # urgent - прервать текущий полет и выполнить полет по указанному маршруту. Без возвращения
     def makeOrder(self, options):
         start  = self.getVertex(options['start' ]) # точка старта маршрута
         finish = self.getVertex(options['finish']) # точка финиша маршрута
-        if start and finish: 
+        priority = options['priority'] # приоритет маршрута (normal, high, urgent)
+        if start and finish and priority:
             way = self.findWay(start['id'], finish['id'], [])
             if way:
-
-                print('Путь нашелся!!!', way)
+                self.db.setPathway(self.map['id'], str(way), priority) # записать путь в БД
+                if priority != 'urgent':
+                    way.reverse()
+                    self.db.setPathway(self.map['id'], str(way), priority) # записать обратный путь в БД
 
                 #... полет
                 #... разгрузка
-                #backWay = self.findWay(finish, start, self.edges) # путь обратно
+                
                 #... полет обратно
 
                 return True

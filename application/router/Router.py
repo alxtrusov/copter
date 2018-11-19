@@ -6,7 +6,7 @@ class Router:
         self.TYPES = mediator.getTypes()
         routes = [
             ('GET', '/api/test', self.testHandler),
-            ('GET', '/api/makeOrder/{start}/{finish}', self.makeOrder), # запрос на выполнение приказа
+            ('GET', '/api/makeOrder/{type}/{priority}/{start}/{finish}', self.makeOrder), # запрос на выполнение приказа
             ('*', '/{name}', self.defaultHandler), # дефолтный хендлер
             ('*', '/', self.staticHandler) # статика
         ]
@@ -17,11 +17,13 @@ class Router:
         return self.web.json_response({ 'result': 'Hello!' })
 
     async def makeOrder(self, request):
-        start  = request.match_info.get('start')
-        finish = request.match_info.get('finish')
+        typeOrder = request.match_info.get('type') # тип маршрута (fly, delivery, landing)
+        priority = request.match_info.get('priority') # приоритет маршрута (normal, high, urgent)
+        start  = request.match_info.get('start') # стартовая точка маршрута
+        finish = request.match_info.get('finish') # конечная точка маршрута
         if start.isdigit() and finish.isdigit():
-            self.mediator.call(self.TYPES['MAKE_ORDER'], { 'start': int(start), 'finish': int(finish) }) # послать запрос на выполнение заказа
-            return self.web.json_response({ 'result': { 'start': int(start), 'finish': int(finish) } }) # выплюнуть ответ
+            self.mediator.call(self.TYPES['MAKE_ORDER'], { 'start': int(start), 'finish': int(finish), 'priority': priority, 'typeOrder': typeOrder }) # послать запрос на выполнение заказа
+            return self.web.json_response({ 'result': { 'start': int(start), 'finish': int(finish), 'priority': priority, 'typeOrder': typeOrder } }) # выплюнуть ответ
         return self.web.json_response({ 'error': 'order points must be numeric' })
 
     async def staticHandler(self, request):

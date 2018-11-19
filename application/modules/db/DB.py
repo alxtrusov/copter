@@ -37,3 +37,11 @@ class DB:
     def getEdges(self, map_id):
         self.c.execute("SELECT id, vertex1, vertex2, weight FROM edge WHERE map_id=:map_id", { "map_id": map_id })
         return self.c.fetchall()
+
+    # записать путь
+    def setPathway(self, map_id, path, priority):
+        query = "INSERT INTO pathway (map_id, path, priority, status) VALUES (:map_id, :path, :priority, 'open')"
+        self.c.execute(query, { "map_id": map_id, "path": path, "priority": priority })
+        return self.conn.commit()
+
+
