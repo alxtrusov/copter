@@ -39,9 +39,9 @@ class DB:
         return self.c.fetchall()
 
     # записать путь
-    def setPathway(self, map_id, path, priority):
-        query = "INSERT INTO pathway (map_id, path, priority, status) VALUES (:map_id, :path, :priority, 'open')"
-        self.c.execute(query, { "map_id": map_id, "path": path, "priority": priority })
+    def setPathway(self, map_id, path, priority, task):
+        query = "INSERT INTO pathway (map_id, path, priority, task, status) VALUES (:map_id, :path, :priority, :task, 'open')"
+        self.c.execute(query, { "map_id": map_id, "path": path, "priority": priority, "task": task })
         return self.conn.commit()
 
 

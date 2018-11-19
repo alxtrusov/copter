@@ -6,29 +6,33 @@ class Router:
         self.TYPES = mediator.getTypes()
         routes = [
             ('GET', '/api/test', self.testHandler),
-            ('GET', '/api/makeOrder/{type}/{priority}/{start}/{finish}', self.makeOrder), # запрос на выполнение приказа
+            ('GET', '/api/makePathway/{priority}/{start}/{finish}', self.makePathway), # запрос на создание маршрута
+            ('GET', '/api/startNextPathway', self.startNextPathway), # запрос на выполнение маршрута
             ('*', '/{name}', self.defaultHandler), # дефолтный хендлер
             ('*', '/', self.staticHandler) # статика
         ]
         for route in routes:
             app.router.add_route(route[0], route[1], route[2])
     
-    async def testHandler(self, request):
+    def testHandler(self, request):
         return self.web.json_response({ 'result': 'Hello!' })
 
-    async def makeOrder(self, request):
-        typeOrder = request.match_info.get('type') # тип маршрута (fly, delivery, landing)
+    def makePathway(self, request):
         priority = request.match_info.get('priority') # приоритет маршрута (normal, high, urgent)
         start  = request.match_info.get('start') # стартовая точка маршрута
         finish = request.match_info.get('finish') # конечная точка маршрута
         if start.isdigit() and finish.isdigit():
-            self.mediator.call(self.TYPES['MAKE_ORDER'], { 'start': int(start), 'finish': int(finish), 'priority': priority, 'typeOrder': typeOrder }) # послать запрос на выполнение заказа
-            return self.web.json_response({ 'result': { 'start': int(start), 'finish': int(finish), 'priority': priority, 'typeOrder': typeOrder } }) # выплюнуть ответ
-        return self.web.json_response({ 'error': 'order points must be numeric' })
+            self.mediator.call(self.TYPES['MAKE_PATHWAY'], { 'start': int(start), 'finish': int(finish), 'priority': priority }) # послать запрос на создание маршрута
+            return self.web.json_response({ 'result': { 'start': int(start), 'finish': int(finish), 'priority': priority } }) # выплюнуть ответ
+        return self.web.json_response({ 'error': 'pathway points must be numeric' })
 
-    async def staticHandler(self, request):
+    def startNextPathway(self, request):
+        self.mediator.call(self.TYPES['START_NEXT_PATHWAY']) # послать запрос на выполнение маршрута
+        return self.web.json_response({ 'result': 'start pathway: ' })
+
+    def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')
 
-    async def defaultHandler(self, request):
+    def defaultHandler(self, request):
         return self.web.json_response({ 'result': 'no route' })
         

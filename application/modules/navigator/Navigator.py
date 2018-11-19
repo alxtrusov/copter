@@ -1,22 +1,23 @@
 # карта, построение маршрута, выдача путевых и опорных точек
 class Navigator:
 
+    SETTINGS = None
     map = None # собственно карта
     vertexes = [] # вершины
-    edges = [] # ребра
+    edges    = [] # ребра
 
-    ways = [] # просмотренные вершины (для поиска пути)
-
-    def __init__(self, db, mediator, mapId):
+    def __init__(self, db, mediator, mapId, settings):
         self.db = db
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
+        self.SETTINGS = settings
         if mapId:
             self.map = db.getMap(mapId)
             if self.map:
                 self.vertexes = db.getVertexes(self.map['id'])
                 self.edges = db.getEdges(self.map['id'])
-        self.mediator.subscribe(self.TYPES['MAKE_ORDER'], self.makeOrder)
+        self.mediator.subscribe(self.TYPES['MAKE_PATHWAY'], self.makePathway)
+        self.mediator.subscribe(self.TYPES['START_NEXT_PATHWAY'], self.startNextPathway)
 
     # найти вершину по id
     def getVertex(self, id):
@@ -52,27 +53,29 @@ class Navigator:
         return None
 
     # сделать полетное задание
-    # normal - полет туда/обратно
-    # high - полет туда/обратно перед всеми normal (вне очереди)
-    # urgent - прервать текущий полет и выполнить полет по указанному маршруту. Без возвращения
-    def makeOrder(self, options):
+    def makePathway(self, options):
         start  = self.getVertex(options['start' ]) # точка старта маршрута
         finish = self.getVertex(options['finish']) # точка финиша маршрута
-        priority = options['priority'] # приоритет маршрута (normal, high, urgent)
+        priority = options['priority']
         if start and finish and priority:
             way = self.findWay(start['id'], finish['id'], [])
             if way:
-                self.db.setPathway(self.map['id'], str(way), priority) # записать путь в БД
-                if priority != 'urgent':
-                    way.reverse()
-                    self.db.setPathway(self.map['id'], str(way), priority) # записать обратный путь в БД
-
-                #... полет
-                #... разгрузка
-                
-                #... полет обратно
-
+                TASK     = self.SETTINGS['TASK'    ]
+                PRIORITY = self.SETTINGS['PRIORITY']
+                if priority == PRIORITY['URGENT']: # супер-важное задание
+                    self.db.setPathway(self.map['id'], str(way), priority, TASK['FLY']) # полет с зависанием
+                else: # все остальные приоритеты
+                    self.db.setPathway(self.map['id'], str(way), priority, TASK['DELIVERY']) # полет с разгрузкой
+                    way.reverse() # перевернуть массив
+                    self.db.setPathway(self.map['id'], str(way), priority, TASK['LANDING']) # полет с посадкой
+                self.mediator.call(self.TYPES['NEW_PATHWAY'])
                 return True
             else:
-                print('Опа! Пусто!')
+                print('Pathway is empty')
         return False
+
+    def startNextPathway(self, options): 
+
+        print('Vasya')
+
+        return True
