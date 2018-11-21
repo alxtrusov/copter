@@ -38,6 +38,17 @@ class DB:
         self.c.execute("SELECT id, vertex1, vertex2, weight FROM edge WHERE map_id=:map_id", { "map_id": map_id })
         return self.c.fetchall()
 
+    # получить все открытые маршруты
+    def getPathways(self, map_id, priority=None):
+        if priority:
+            query = "SELECT id, path, priority, task FROM pathway WHERE map_id=:map_id AND priority=:priority AND status='open'"
+            params = { "map_id": map_id, "priority": priority }
+        else:
+            query = "SELECT id, path, priority, task FROM pathway WHERE map_id=:map_id AND status='open'"
+            params = { "map_id": map_id }
+        self.c.execute(query, params)
+        return self.c.fetchall()
+
     # записать путь
     def setPathway(self, map_id, path, priority, task):
         query = "INSERT INTO pathway (map_id, path, priority, task, status) VALUES (:map_id, :path, :priority, :task, 'open')"

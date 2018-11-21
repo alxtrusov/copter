@@ -74,8 +74,10 @@ class Navigator:
                 print('Pathway is empty')
         return False
 
+    # стартовать последовательное выполнение маршрутов
     def startNextPathway(self, options): 
-
-        print('Vasya')
-
+        ways = self.db.getPathways(self.map['id'])
+        print(ways)
+        for way in ways:
+            print(way['path'].split(','))
         return True

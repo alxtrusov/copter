@@ -6,8 +6,10 @@ class Router:
         self.TYPES = mediator.getTypes()
         routes = [
             ('GET', '/api/test', self.testHandler),
-            ('GET', '/api/makePathway/{priority}/{start}/{finish}', self.makePathway), # запрос на создание маршрута
-            ('GET', '/api/startNextPathway', self.startNextPathway), # запрос на выполнение маршрута
+            ('GET', '/api/pathway/make/{priority}/{start}/{finish}', self.makePathway), # запрос на создание маршрута
+            ('GET', '/api/pathway/start/next', self.startNextPathway), # запрос на выполнение маршрута
+            #('GET', '/api/pathway/start/{id}', self.startNextPathway), # запрос на выполнение конкретного маршрута
+            ('GET', '/api/pathway/terminate', self.terminatePathway), # прекратить выполнение маршрута
             ('*', '/{name}', self.defaultHandler), # дефолтный хендлер
             ('*', '/', self.staticHandler) # статика
         ]
@@ -28,7 +30,11 @@ class Router:
 
     def startNextPathway(self, request):
         self.mediator.call(self.TYPES['START_NEXT_PATHWAY']) # послать запрос на выполнение маршрута
-        return self.web.json_response({ 'result': 'start pathway: ' })
+        return self.web.json_response({ 'result': 'start execute pathways' })
+
+    def terminatePathway(self, request):
+        self.mediator.call(self.TYPES['TERMINATE_PATHWAY'])
+        return self.web.json_response({ 'result': 'terminate pathway' })
 
     def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')
