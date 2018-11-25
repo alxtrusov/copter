@@ -5,6 +5,8 @@ class Navigator:
     map = None # собственно карта
     vertexes = [] # вершины
     edges    = [] # ребра
+    currentPath = None # текущий путь
+    currentPoint = 0 # текущая точка пути
 
     def __init__(self, db, mediator, mapId, settings):
         self.db = db
@@ -16,9 +18,19 @@ class Navigator:
             if self.map:
                 self.vertexes = db.getVertexes(self.map['id'])
                 self.edges = db.getEdges(self.map['id'])
-        self.mediator.subscribe(self.TYPES['MAKE_PATHWAY'], self.makePathway)
+        # если имеется непройденный маршрут
+        launchPath = self.db.getLaunchPathway()
+        if launchPath:
+            self.setCurrentPath(launchPath)
+        # подписки на события
+        self.mediator.subscribe(self.TYPES['MAKE_PATHWAY'      ], self.makePathway     )
         self.mediator.subscribe(self.TYPES['START_NEXT_PATHWAY'], self.startNextPathway)
+        self.mediator.subscribe(self.TYPES['TERMINATE_PATHWAY' ], self.terminatePathway)
+        self.mediator.subscribe(self.TYPES['GET_NEXT_POINT'    ], self.getNextPoint    )
 
+    '''
+    СЛУЖЕБНЫЕ МЕТОДЫ
+    '''
     # найти вершину по id
     def getVertex(self, id):
         result = [x for x in self.vertexes if x['id'] == id]
@@ -52,6 +64,25 @@ class Navigator:
                         return newWay
         return None
 
+    # очистить текущий путь
+    def clearCurrentPath(self):
+        self.currentPath = None
+        self.currentPoint = 0
+
+    # выставить новый текущий путь
+    def setCurrentPath(self, way):
+        self.currentPath = way
+        self.currentPoint = 0
+
+    # переводит строку с массивом в массив вершин
+    def strPathToArray(self, path):
+        path = path.replace('[', '').replace(']', '')
+        path = [int(s) for s in path.split(', ')]
+        return path
+
+    '''
+    ОБРАБОТЧИКИ СОБЫТИЙ
+    '''
     # сделать полетное задание
     def makePathway(self, options):
         start  = self.getVertex(options['start' ]) # точка старта маршрута
@@ -75,9 +106,36 @@ class Navigator:
         return False
 
     # стартовать последовательное выполнение маршрутов
-    def startNextPathway(self, options): 
-        ways = self.db.getPathways(self.map['id'])
-        print(ways)
-        for way in ways:
-            print(way['path'].split(','))
+    def startNextPathway(self, options):
+        id = options['id'] if 'id' in options.keys() else None
+        if id: # выполнить один маршрут
+            way = self.db.getPathway(id)
+            if way: 
+                way['path'] = self.strPathToArray(way['path']) # перевести строковый путь в массив вершин
+                self.terminatePathway() # прекратить выполнение маршрута
+                self.setCurrentPath(way) # выставить текущий маршрут
+                self.db.updatePathwayStatus(self.currentPath['id'], 'launch')
+                self.getNextPoint() # запустить пролет по маршруту
+        else: # выполнить маршруты по их приоритетам
+            ways = self.db.getPathways(self.map['id'])
+            for way in ways:
+                way['path'] = self.strPathToArray(way['path']) # перевести строковый путь в массив вершин
         return True
+
+    # прекратить выполнение маршрута (любого)
+    def terminatePathway(self, options = None):
+        if self.currentPath: # погасить текущий путь в БД
+            self.db.closePathway(self.currentPath['id'])
+        self.clearCurrentPath()
+        return True
+
+    # получить следующу
+    def getNextPoint(self):
+        if self.currentPath:
+            self.currentPoint += 1
+            if (self.currentPoint < len(self.currentPath['path'])):
+                vertex = self.getVertex(self.currentPath['path'][self.currentPoint])
+                self.mediator.call(self.TYPES['NEXT_POINT'], { 'next': vertex })
+                return True
+        return self.terminatePathway()
+            

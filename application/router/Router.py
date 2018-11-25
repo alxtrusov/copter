@@ -7,8 +7,8 @@ class Router:
         routes = [
             ('GET', '/api/test', self.testHandler),
             ('GET', '/api/pathway/make/{priority}/{start}/{finish}', self.makePathway), # запрос на создание маршрута
-            ('GET', '/api/pathway/start/next', self.startNextPathway), # запрос на выполнение маршрута
-            #('GET', '/api/pathway/start/{id}', self.startNextPathway), # запрос на выполнение конкретного маршрута
+            ('GET', '/api/pathway/start/next'     , self.startNextPathway), # запрос на выполнение маршрута
+            ('GET', '/api/pathway/start/next/{id}', self.startNextPathway), # запрос на выполнение конкретного маршрута
             ('GET', '/api/pathway/terminate', self.terminatePathway), # прекратить выполнение маршрута
             ('*', '/{name}', self.defaultHandler), # дефолтный хендлер
             ('*', '/', self.staticHandler) # статика
@@ -29,7 +29,11 @@ class Router:
         return self.web.json_response({ 'error': 'pathway points must be numeric' })
 
     def startNextPathway(self, request):
-        self.mediator.call(self.TYPES['START_NEXT_PATHWAY']) # послать запрос на выполнение маршрута
+        id = request.match_info.get('id') # приоритет маршрута (normal, high, urgent)
+        if id and id.isdigit():
+            self.mediator.call(self.TYPES['START_NEXT_PATHWAY'], { 'id': int(id) }) # послать запрос на выполнение конкретного маршрута
+        else:
+            self.mediator.call(self.TYPES['START_NEXT_PATHWAY'], {}) # послать запрос на выполнение маршрута
         return self.web.json_response({ 'result': 'start execute pathways' })
 
     def terminatePathway(self, request):

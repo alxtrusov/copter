@@ -26,6 +26,8 @@ SETTINGS = {
         'MAKE_PATHWAY': 'MAKE_PATHWAY', # задать полетное задание (маршрут)
         'NEW_PATHWAY': 'NEW_PATHWAY', # новое полетное задание создано
         'START_NEXT_PATHWAY': 'START_NEXT_PATHWAY', # начать выполнение следующего полетного задания
-        'TERMINATE_PATHWAY': 'TERMINATE_PATHWAY' # прекратить выполнение текущего маршрута
+        'TERMINATE_PATHWAY': 'TERMINATE_PATHWAY', # прекратить выполнение текущего маршрута
+        'GET_NEXT_POINT': 'GET_NEXT_POINT', # запросить следующую точку полетного маршрута
+        'NEXT_POINT': 'NEXT_POINT' # следующая точка полетного маршрута
     }
 }
