@@ -1,22 +1,63 @@
 # автопилот
 class Pilot:
 
+    point = None # текущая точка нахождения
+
     def __init__(self, db, mediator):
         self.db = db
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
         # подписки на события
         self.mediator.subscribe(self.TYPES['TERMINATE_PATHWAY'], self.terminatePathway)
+        self.mediator.subscribe(self.TYPES['FIRST_POINT'], self.firstPoint)
         self.mediator.subscribe(self.TYPES['NEXT_POINT'], self.nextPoint)
+        self.mediator.subscribe(self.TYPES['LAST_POINT'], self.lastPoint)
 
+    '''
+    ОБРАБОТЧИКИ СОБЫТИЙ
+    '''
     # прекратить полет
     def terminatePathway(self, options):
         #...
         print('stop execute pathway in pilot')
         return True
 
-    # получить следующую точку полета
+    # получил первую точку полетного маршрута
+    def firstPoint(self, options):
+        vertex = options['vertex'] if 'vertex' in options.keys() else None
+        if (vertex):
+            print('first point', vertex)
+            # взлететь
+            #...
+            self.mediator.call(self.TYPES['GET_NEXT_POINT']) # запросить следующую точку
+            return True
+        return False
+
+    # получил следующую точку полетного маршрута
     def nextPoint(self, options):
-        vertex = options['next']
-        print(vertex)
+        nextVertex = options['next'] if 'next' in options.keys() else None # следующая точка маршрута
+        prevVertex = options['prev'] if 'prev' in options.keys() else None # предыдущая точка маршрута
+        if nextVertex:
+            print('Go To point', prevVertex, nextVertex)
+            # лететь в точку nextVertex
+            #...
+            self.mediator.call(self.TYPES['GET_NEXT_POINT']) # запросить следующую точку маршрута
+            return True
+        print('All going wrong! Next point is empty! Terminate pathway')
+        self.mediator.call(self.TYPES['TERMINATE_PATHWAY'])
+        return False
         
+    # получил последнюю точку полетного маршрута
+    def lastPoint(self, options):
+        vertex = options['vertex'] if 'vertex' in options.keys() else None
+        task   = options['task'  ] if 'task'   in options.keys() else None # приказ на выполнение задания
+        if (vertex and task): # выполнить полетное задание
+            print('last point', vertex, task)
+            # выполнить полетное задание
+            #...
+            # завершить маршрут и начать выполнять следующий маршрут
+            print('!!!START_NEXT_PATHWAY!!!')
+            self.mediator.call(self.TYPES['TERMINATE_PATHWAY'])
+            #self.mediator.call(self.TYPES['START_NEXT_PATHWAY'])
+            return True
+        return False

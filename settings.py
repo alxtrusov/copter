@@ -28,6 +28,8 @@ SETTINGS = {
         'START_NEXT_PATHWAY': 'START_NEXT_PATHWAY', # начать выполнение следующего полетного задания
         'TERMINATE_PATHWAY': 'TERMINATE_PATHWAY', # прекратить выполнение текущего маршрута
         'GET_NEXT_POINT': 'GET_NEXT_POINT', # запросить следующую точку полетного маршрута
-        'NEXT_POINT': 'NEXT_POINT' # следующая точка полетного маршрута
+        'FIRST_POINT': 'FIRST_POINT', # первая точка полетного маршрута
+        'NEXT_POINT': 'NEXT_POINT', # следующая точка полетного маршрута
+        'LAST_POINT': 'LAST_POINT' # последняя точка полетного маршрута
     }
 }

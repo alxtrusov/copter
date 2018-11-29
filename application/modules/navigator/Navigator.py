@@ -120,6 +120,8 @@ class Navigator:
             ways = self.db.getPathways(self.map['id'])
             for way in ways:
                 way['path'] = self.strPathToArray(way['path']) # перевести строковый путь в массив вершин
+                # TODO ДОПИСАТЬ!!!
+                #...
         return True
 
     # прекратить выполнение маршрута (любого)
@@ -129,13 +131,25 @@ class Navigator:
         self.clearCurrentPath()
         return True
 
-    # получить следующу
-    def getNextPoint(self):
+    # получить следующую точку маршрута
+    def getNextPoint(self, options = None):
         if self.currentPath:
-            self.currentPoint += 1
-            if (self.currentPoint < len(self.currentPath['path'])):
+            if self.currentPoint == 0: # первая точка маршрута
                 vertex = self.getVertex(self.currentPath['path'][self.currentPoint])
-                self.mediator.call(self.TYPES['NEXT_POINT'], { 'next': vertex })
+                self.currentPoint += 1
+                self.mediator.call(self.TYPES['FIRST_POINT'], { 'vertex': vertex })
+                return True
+            # остальные точки маршрута
+            if (self.currentPoint < len(self.currentPath['path']) - 1):
+                nextVertex = self.getVertex(self.currentPath['path'][self.currentPoint])
+                prevVertex = self.getVertex(self.currentPath['path'][self.currentPoint - 1])
+                self.currentPoint += 1
+                self.mediator.call(self.TYPES['NEXT_POINT'], { 'next': nextVertex, 'prev': prevVertex })
+                return True
+            # последняя точка маршрута
+            if self.currentPath:
+                vertex = self.getVertex(self.currentPath['path'][self.currentPoint])
+                self.mediator.call(self.TYPES['LAST_POINT'], { 'vertex': vertex, 'task': self.currentPath['task'] })
                 return True
         return self.terminatePathway()
             
