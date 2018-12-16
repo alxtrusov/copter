@@ -13,7 +13,7 @@ from application.router.Router import Router
 
 db = DB(SETTINGS['DB']) # база данных
 mediator = Mediator(SETTINGS['MEDIATOR_EVENTS']) # медиатор
-vision = Vision(db, mediator) # машинное видение
+vision = Vision(db, mediator, SETTINGS['VISION']) # машинное видение
 pilot = Pilot(db, mediator) # автопилот, управление коптером
 navigator = Navigator(db, mediator, SETTINGS['MAP_ID'], SETTINGS['PATHWAY']) # карта, позиционирование, настройка карты, задание маршрутов
 sensor = Sensor(db, mediator) # получение данных с датчиков расстояния

@@ -1,12 +1,18 @@
+from .DroneKit import DroneKit
+
 # автопилот
 class Pilot:
 
     point = None # текущая точка нахождения
+    droneKit = None # плагин для управления коптером
 
     def __init__(self, db, mediator):
         self.db = db
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
+
+        self.droneKit = DroneKit()
+
         # подписки на события
         self.mediator.subscribe(self.TYPES['TERMINATE_PATHWAY'], self.terminatePathway)
         self.mediator.subscribe(self.TYPES['FIRST_POINT'], self.firstPoint)

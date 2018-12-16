@@ -20,6 +20,10 @@ SETTINGS = {
             'LANDING': 'landing' # полет с посадкой
         }
     },
+    'VISION': {
+        'MARKER_SIZE': 0.3, # в метрах
+        'PATH_TO_CALIBRATE_IMAGES': 'application/modules/vision/calib_images/*.jpg'
+    },
     # список событий медиатора
     'MEDIATOR_EVENTS': {
         'TEST': 'TEST',
