@@ -8,7 +8,7 @@ class DroneKit:
 
     def __init__(self):
         # settings
-        connectionString = '127.0.0.1:14540'
+        connectionString = '127.0.0.1:14540' # or 14550
         MAV_MODE_AUTO = 4
         # Parse connection argument
         parser = argparse.ArgumentParser()
@@ -21,9 +21,9 @@ class DroneKit:
         print("Connecting")
         print(connectionString)
 
-        #self.vehicle = connect(connectionString, wait_ready=True)
+        self.vehicle = connect(connectionString, wait_ready=True)
 
-        print('Плохой коннект!')
+        print('Аааааахуенна!!!')
 
         return None
 
