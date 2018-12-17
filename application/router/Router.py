@@ -15,6 +15,8 @@ class Router:
         ]
         for route in routes:
             app.router.add_route(route[0], route[1], route[2])
+
+        self.mediator.subscribe(self.TYPES['CAMERA_IMAGE_CAPTURE'], self.stream)
     
     def testHandler(self, request):
         return self.web.json_response({ 'result': 'Hello!' })
@@ -39,6 +41,9 @@ class Router:
     def terminatePathway(self, request):
         self.mediator.call(self.TYPES['TERMINATE_PATHWAY'])
         return self.web.json_response({ 'result': 'terminate pathway' })
+
+    def stream(self, data):
+        print(data)
 
     def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')

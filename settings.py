@@ -34,6 +34,8 @@ SETTINGS = {
         'GET_NEXT_POINT': 'GET_NEXT_POINT', # запросить следующую точку полетного маршрута
         'FIRST_POINT': 'FIRST_POINT', # первая точка полетного маршрута
         'NEXT_POINT': 'NEXT_POINT', # следующая точка полетного маршрута
-        'LAST_POINT': 'LAST_POINT' # последняя точка полетного маршрута
+        'LAST_POINT': 'LAST_POINT', # последняя точка полетного маршрута
+
+        'CAMERA_IMAGE_CAPTURE': 'CAMERA_IMAGE_CAPTURE' # захваченный очередной снимок с камеры
     }
 }

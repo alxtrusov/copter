@@ -16,6 +16,7 @@ class Vision:
     def __init__(self, db, mediator, settings):
         self.db = db
         self.mediator = mediator
+        self.TYPES = mediator.getTypes()
         self.markerSize = settings['MARKER_SIZE']  # Размер маркера в метрах
         self.cap = cv2.VideoCapture(0)
 
@@ -46,22 +47,20 @@ class Vision:
                 corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
                 imgpoints.append(corners2)
         self.ret, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-
-
+        # тут должен быть while, который скриншотит камеру, но не вешает сервак!!!
         print(self.fire())
 
     def fire(self):
         ret, frame = self.cap.read()
-
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
         parameters = aruco.DetectorParameters_create()
-
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters = parameters)
-
         tvec = []
         if np.all(ids):
             rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[0], self.markerSize, self.mtx, self.dist)
             # (rvec-tvec).any() # get rid of that nasty numpy value array error
 
-        return tvec
+        self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], cv2.imencode(".jpg", frame))
+
+        return tvec        
