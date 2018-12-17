@@ -2,14 +2,8 @@ import numpy as np
 import cv2
 from cv2 import aruco
 import glob
-
-'''
-from Vision import Vision
-
-v = Vision(None, None, 0.3)
-while (True):
-    print(v.fire())
-'''
+import threading
+import time
 
 # класс про машинное видение
 class Vision:
@@ -19,7 +13,6 @@ class Vision:
         self.TYPES = mediator.getTypes()
         self.markerSize = settings['MARKER_SIZE']  # Размер маркера в метрах
         self.cap = cv2.VideoCapture(0)
-
 
         '''
         For example, I can check the frame width and height by cap.get(3) and cap.get(4). 
@@ -47,20 +40,21 @@ class Vision:
                 corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
                 imgpoints.append(corners2)
         self.ret, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-        # тут должен быть while, который скриншотит камеру, но не вешает сервак!!!
-        print(self.fire())
+        # запуск камеры в отдельном потоке (Юра, молодец!)
+        t = threading.Thread(target=self.fire, args=())
+        t.start()
 
-    def fire(self):
-        ret, frame = self.cap.read()
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
-        parameters = aruco.DetectorParameters_create()
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters = parameters)
-        tvec = []
-        if np.all(ids):
-            rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[0], self.markerSize, self.mtx, self.dist)
-            # (rvec-tvec).any() # get rid of that nasty numpy value array error
 
-        self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], cv2.imencode(".jpg", frame))
-
-        return tvec        
+    def fire(self, data=None):
+        while True:
+            ret, frame = self.cap.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
+            parameters = aruco.DetectorParameters_create()
+            corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters = parameters)
+            tvec = []
+            if np.all(ids):
+                rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[0], self.markerSize, self.mtx, self.dist)
+                # (rvec-tvec).any() # get rid of that nasty numpy value array error
+            self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], cv2.imencode(".jpg", frame))
+            # return tvec, bytearray(buf)

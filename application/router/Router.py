@@ -6,6 +6,7 @@ class Router:
         self.TYPES = mediator.getTypes()
         routes = [
             ('GET', '/api/test', self.testHandler),
+            ('GET', '/api/stream', self.streamHandler),
             ('GET', '/api/pathway/make/{priority}/{start}/{finish}', self.makePathway), # запрос на создание маршрута
             ('GET', '/api/pathway/start/next'     , self.startNextPathway), # запрос на выполнение маршрута
             ('GET', '/api/pathway/start/next/{id}', self.startNextPathway), # запрос на выполнение конкретного маршрута
@@ -44,10 +45,14 @@ class Router:
 
     def stream(self, data):
         print(data)
+        self.streamData = data
+
+    def streamHandler(self, data=None):
+        #print(self.streamData)
+        return self.web.json_response({'result': 'ok'})
 
     def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')
 
     def defaultHandler(self, request):
         return self.web.json_response({ 'result': 'no route' })
-        

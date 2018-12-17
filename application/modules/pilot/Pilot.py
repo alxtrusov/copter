@@ -11,7 +11,7 @@ class Pilot:
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
 
-        self.droneKit = DroneKit()
+        #self.droneKit = DroneKit()
 
         # подписки на события
         self.mediator.subscribe(self.TYPES['TERMINATE_PATHWAY'], self.terminatePathway)
