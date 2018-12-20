@@ -21,6 +21,10 @@ class DroneKit:
         print("Connecting")
         print(connectionString)
         self.vehicle = connect(connectionString, wait_ready=True)
+
+        print("Пущ-пущ-пущ!")
+        print(" Mode: %s" % vehicle.mode.name)
+
         return None
 
     def PX4setMode(mavMode):
