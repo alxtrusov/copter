@@ -1,9 +1,13 @@
+import base64
+import time
+
 class Router:
 
     def __init__(self, app, web, mediator):
         self.web = web
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
+        self.vecArr, self.streamData = ([], [])
         routes = [
             ('GET', '/api/test', self.testHandler),
             ('GET', '/api/stream', self.streamHandler),
@@ -11,9 +15,13 @@ class Router:
             ('GET', '/api/pathway/start/next'     , self.startNextPathway), # запрос на выполнение маршрута
             ('GET', '/api/pathway/start/next/{id}', self.startNextPathway), # запрос на выполнение конкретного маршрута
             ('GET', '/api/pathway/terminate', self.terminatePathway), # прекратить выполнение маршрута
-            ('*', '/{name}', self.defaultHandler), # дефолтный хендлер
+            ('GET', '/api/shutdown', self.shutdown), # выключить малину
+            ('GET', '/api/reboot', self.reboot), # ребутнуть малину
+            ('GET', '/api/present/drop', self.dropPresent), # скинуть подарки
+            #('*', '/{name}', self.defaultHandler), # дефолтный хендлер
             ('*', '/', self.staticHandler) # статика
         ]
+        app.router.add_static('/js/', path=str('./public/js/'))
         for route in routes:
             app.router.add_route(route[0], route[1], route[2])
 
@@ -43,13 +51,25 @@ class Router:
         self.mediator.call(self.TYPES['TERMINATE_PATHWAY'])
         return self.web.json_response({ 'result': 'terminate pathway' })
 
+    def shutdown(self, request):
+        self.mediator.call(self.TYPES['SHUTDOWN'])
+        return self.web.json_response({ 'result': 'shutdown' })
+
+    def reboot(self, request):
+        self.mediator.call(self.TYPES['REBOOT'])
+        return self.web.json_response({ 'result': 'reboot' })
+
+    def dropPresent(self, request):
+        self.mediator.call(self.TYPES['FIRE_DROP_PRESENT'])
+        return self.web.json_response({ 'result': 'presents dropped' })
+
     def stream(self, data):
-        print(data)
-        self.streamData = data
+        self.vecArr, self.streamData = data
 
     def streamHandler(self, data=None):
-        #print(self.streamData)
-        return self.web.json_response({'result': 'ok'})
+        image = self.streamData
+        data = base64.b64encode(bytearray(image))
+        return self.web.json_response({'result': data.decode('utf-8')})
 
     def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')

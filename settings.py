@@ -36,6 +36,15 @@ SETTINGS = {
         'NEXT_POINT': 'NEXT_POINT', # следующая точка полетного маршрута
         'LAST_POINT': 'LAST_POINT', # последняя точка полетного маршрута
 
-        'CAMERA_IMAGE_CAPTURE': 'CAMERA_IMAGE_CAPTURE' # захваченный очередной снимок с камеры
+        'CAMERA_IMAGE_CAPTURE': 'CAMERA_IMAGE_CAPTURE', # захваченный очередной снимок с камеры
+
+        'FIRE_DROP_PRESENT': 'FIRE_DROP_PRESENT', # сбросить подарки, нанести счастье, причинить добро
+        'SHUTDOWN': 'SHUTDOWN', # команда на выключение
+        'REBOOT': 'REBOOT' # команда на перезапуск
+    },
+    # список используемых пинов
+    'PINS': {
+        'DROP_PRESENT': 7, # сбросить подарки
+        'GROUND': 9 # земля
     }
 }

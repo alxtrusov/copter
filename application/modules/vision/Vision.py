@@ -44,7 +44,6 @@ class Vision:
         t = threading.Thread(target=self.fire, args=())
         t.start()
 
-
     def fire(self, data=None):
         while True:
             ret, frame = self.cap.read()
@@ -55,6 +54,7 @@ class Vision:
             tvec = []
             if np.all(ids):
                 rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[0], self.markerSize, self.mtx, self.dist)
-                # (rvec-tvec).any() # get rid of that nasty numpy value array error
-            self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], cv2.imencode(".jpg", frame))
-            # return tvec, bytearray(buf)
+            r, buf = cv2.imencode(".jpg", frame)
+            # cv2.imwrite(filepath, frame)
+            self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], (tvec, buf))
+            # return
