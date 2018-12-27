@@ -4,6 +4,7 @@ from cv2 import aruco
 import glob
 import threading
 import time
+import math
 
 # класс про машинное видение
 class Vision:
@@ -51,10 +52,24 @@ class Vision:
             aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
             parameters = aruco.DetectorParameters_create()
             corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters = parameters)
-            tvec = []
+            tvec, rvec = ([], [])
             if np.all(ids):
                 rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners[0], self.markerSize, self.mtx, self.dist)
             r, buf = cv2.imencode(".jpg", frame)
             # cv2.imwrite(filepath, frame)
-            self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], (tvec, buf))
+
+            # print((ids, tvec)) распознает только одну (какую?)
+
+            '''
+            # ids = [[2], [2]] или [[2]] найденные идентификаторы
+            # tvec = [[[x, y, z]]] координата камеры относительно плоскости найденного идентифакатора
+            if ids:
+                x = tvec[0][0][0]
+                y = tvec[0][0][1]
+                z = tvec[0][0][2]
+                rast = math.sqrt(x * x + y * y + z * z)
+                print(rast)
+            '''
+
+            self.mediator.call(self.TYPES['CAMERA_IMAGE_CAPTURE'], buf)
             # return

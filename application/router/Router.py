@@ -7,7 +7,7 @@ class Router:
         self.web = web
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
-        self.vecArr, self.streamData = ([], [])
+        self.streamData = []
         routes = [
             ('GET', '/api/test', self.testHandler),
             ('GET', '/api/stream', self.streamHandler),
@@ -18,6 +18,7 @@ class Router:
             ('GET', '/api/shutdown', self.shutdown), # выключить малину
             ('GET', '/api/reboot', self.reboot), # ребутнуть малину
             ('GET', '/api/present/drop', self.dropPresent), # скинуть подарки
+            ('GET', '/api/simple', self.simpleArm), # простое заармливание
             #('*', '/{name}', self.defaultHandler), # дефолтный хендлер
             ('*', '/', self.staticHandler) # статика
         ]
@@ -63,13 +64,17 @@ class Router:
         self.mediator.call(self.TYPES['FIRE_DROP_PRESENT'])
         return self.web.json_response({ 'result': 'presents dropped' })
 
+    def simpleArm(self, request):
+        self.mediator.call(self.TYPES['SIMPLE_ARM'])
+        return self.web.json_response({ 'result': 'simple arm' })
+
     def stream(self, data):
-        self.vecArr, self.streamData = data
+        self.streamData = data
 
     def streamHandler(self, data=None):
         image = self.streamData
         data = base64.b64encode(bytearray(image))
-        return self.web.json_response({'result': data.decode('utf-8')})
+        return self.web.json_response({ 'result': data.decode('utf-8') })
 
     def staticHandler(self, request):
         return self.web.FileResponse('./public/index.html')

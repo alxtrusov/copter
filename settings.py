@@ -36,6 +36,8 @@ SETTINGS = {
         'NEXT_POINT': 'NEXT_POINT', # следующая точка полетного маршрута
         'LAST_POINT': 'LAST_POINT', # последняя точка полетного маршрута
 
+        'SIMPLE_ARM': 'SIMPLE_ARM', # заармится, включить двигатели, подрочить, и выключиться
+
         'CAMERA_IMAGE_CAPTURE': 'CAMERA_IMAGE_CAPTURE', # захваченный очередной снимок с камеры
 
         'FIRE_DROP_PRESENT': 'FIRE_DROP_PRESENT', # сбросить подарки, нанести счастье, причинить добро

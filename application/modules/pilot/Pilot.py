@@ -11,13 +11,14 @@ class Pilot:
         self.mediator = mediator
         self.TYPES = mediator.getTypes()
 
-        #self.droneKit = DroneKit()
+        self.droneKit = DroneKit()
 
         # подписки на события
         self.mediator.subscribe(self.TYPES['TERMINATE_PATHWAY'], self.terminatePathway)
         self.mediator.subscribe(self.TYPES['FIRST_POINT'], self.firstPoint)
         self.mediator.subscribe(self.TYPES['NEXT_POINT'], self.nextPoint)
         self.mediator.subscribe(self.TYPES['LAST_POINT'], self.lastPoint)
+        self.mediator.subscribe(self.TYPES['SIMPLE_ARM'], self.simpleArm)
 
     '''
     ОБРАБОТЧИКИ СОБЫТИЙ
@@ -67,3 +68,7 @@ class Pilot:
             #self.mediator.call(self.TYPES['START_NEXT_PATHWAY'])
             return True
         return False
+
+    def simpleArm(self, options):
+        self.droneKit.simpleArm()
+        return True

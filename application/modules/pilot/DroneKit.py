@@ -1,4 +1,4 @@
-from dronekit import connect, Command, LocationGlobal
+from dronekit import connect, Command, LocationGlobal, VehicleMode
 from pymavlink import mavutil
 import time, sys, argparse, math
 
@@ -9,7 +9,7 @@ class DroneKit:
     def __init__(self):
         # settings
         connectionString = '127.0.0.1:14540' # or 14550
-        MAV_MODE_AUTO = 4
+        self.MAV_MODE_AUTO = 4
         # Parse connection argument
         parser = argparse.ArgumentParser()
         parser.add_argument("-c", "--connect", help="connection string")
@@ -20,20 +20,45 @@ class DroneKit:
         # Connect to the Vehicle
         print("Connecting")
         print(connectionString)
-        self.vehicle = connect(connectionString, wait_ready=True)
-
-        print("Пущ-пущ-пущ!")
-        print(" Mode: %s" % vehicle.mode.name)
-
+        self.vehicle = connect(connectionString, wait_ready=True, baud=57600)
+        # Атрибуты коптера
+        print("Vehicle state:")
+        # Объект с координатами широты, долготы, высоты и относительной высоты. 
+        # Высота считается относительно уровня моря, а относительная высота применяется к стартовой позиции.
+        print(" Global Location: %s" % self.vehicle.location.global_frame)
+        print(" Global Location (relative altitude): %s" % self.vehicle.location.global_relative_frame)
+        print(" Local Location: %s" % self.vehicle.location.local_frame)
+        # Позиция в кординатах pitch, yaw, roll
+        print(" Attitude: %s" % self.vehicle.attitude)
+        # Текущий вольтаж, ток и оставшийся уровень заряда
+        print(" Battery: %s" % self.vehicle.battery)
+        # Время последней удавшаяся проверки связи с коптером. 
+        print(" Last Heartbeat: %s" % self.vehicle.last_heartbeat)
+        # Направление, в градусах относительно севера
+        print(" Heading: %s" % self.vehicle.heading)
+        # Скорость по земле
+        print(" Groundspeed: %s" % self.vehicle.groundspeed)
+        # Скорость в воздухе
+        print(" Airspeed: %s" % self.vehicle.airspeed)
+        # можем запускать двигатели или нет
+        print(" Is Armable?: %s" % self.vehicle.is_armable)
+        # Запущены ли двигатели
+        print(" Armed: %s" % self.vehicle.armed)
+        # Режим в котором сейчас находимся
+        print(" Mode: %s" % self.vehicle.mode.name)
         return None
 
-    def PX4setMode(mavMode):
+    def __del__(self):
+        if self.vehicle:
+            self.vehicle.close()
+
+    def PX4setMode(self, mavMode):
         self.vehicle._master.mav.command_long_send(self.vehicle._master.target_system, self.vehicle._master.target_component,
                                                 mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
                                                 mavMode,
                                                 0, 0, 0, 0, 0, 0)
 
-    def getLocationOffsetMeters(original_location, dNorth, dEast, alt):
+    def getLocationOffsetMeters(self, original_location, dNorth, dEast, alt):
         """
         Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the
         specified `original_location`. The returned Location adds the entered `alt` value to the altitude of the `original_location`.
@@ -52,6 +77,81 @@ class DroneKit:
         newlon = original_location.lon + (dLon * 180/math.pi)
         return LocationGlobal(newlat, newlon,original_location.alt + alt)
 
+    def simpleArm(self):
+
+        print('arm it full!!!')
+
+        # выставить какой-то важный режим
+        #self.PX4setMode(self.MAV_MODE_AUTO)
+
+        '''
+        # очистить список команд
+        cmds = self.vehicle.commands
+        cmds.clear()
+        # точка: ДОМ
+        home = self.vehicle.location.global_relative_frame
+
+        # takeoff to 0.1 meters
+        wp = self.getLocationOffsetMeters(home, 0, 0, 0.1)
+        cmd = Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 1, 0, 0, 0, 0, wp.lat, wp.lon, wp.alt)
+        cmds.add(cmd)
+
+        # land
+        wp = self.getLocationOffsetMeters(home, 0, 0, 0.1)
+        cmd = Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_LAND, 0, 1, 0, 0, 0, 0, wp.lat, wp.lon, wp.alt)
+        cmds.add(cmd)
+
+        # Upload mission
+        cmds.upload()
+        time.sleep(2)
+        '''
+        print("Предполетные проверки")
+
+        while not self.vehicle.is_armable:
+            print("Ждем коптер...")
+            time.sleep(1)
+
+        print("Запускаем двигатели")
+
+        # Arm vehicle
+        self.vehicle.mode = VehicleMode("GUIDED")
+        #self.vehicle.mode = VehicleMode("STABILIZE")
+        # ALT_HOLD
+        # vehicle.mode = VehicleMode("RTL") # Return To Launch
+        self.vehicle.armed = True
+
+        while not self.vehicle.armed:
+            print(" Ждем моторы...")
+            time.sleep(1)
+
+        print("Взлет!")
+
+        self.vehicle.simple_takeoff(0.5)
+
+        time.sleep(5)
+
+        self.vehicle.mode = VehicleMode("LAND")
+
+        '''
+        # monitor mission execution
+        nextwaypoint = self.vehicle.commands.next
+        while nextwaypoint < len(self.vehicle.commands):
+            if self.vehicle.commands.next > nextwaypoint:
+                display_seq = self.vehicle.commands.next+1
+                print("Moving to waypoint %s" % display_seq)
+                nextwaypoint = self.vehicle.commands.next
+            time.sleep(1)
+
+        # wait for the vehicle to land
+        while self.vehicle.commands.next > 0:
+            time.sleep(1)
+        '''
+
+        # Disarm vehicle
+        self.vehicle.armed = False
+        time.sleep(1)
+
+        print('done!!!')
 
 '''
 ################################################################################################
