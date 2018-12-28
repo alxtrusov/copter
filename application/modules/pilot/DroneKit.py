@@ -77,10 +77,43 @@ class DroneKit:
         newlon = original_location.lon + (dLon * 180/math.pi)
         return LocationGlobal(newlat, newlon,original_location.alt + alt)
 
+    def preArm(self): 
+        return True
+        count = 0
+        while not self.vehicle.is_armable:
+            count += 1
+            print(" Ждем коптер...")
+            time.sleep(1)
+            if count >= 20:
+                return False
+        return True
+
+    def arm(self):
+        count = 0
+        self.vehicle.armed = True
+        while not self.vehicle.armed:
+            count += 1
+            print(" Ждем моторы...")
+            time.sleep(1)
+            if count >= 20:
+                return False
+        return True
+
+    def disArm(self):
+        self.vehicle.armed = False
+        time.sleep(1)
+        return True
+    
+    # "GUIDED" - без GPS
+    # "GUIDED_NOGPS"
+    # "STABILIZE" - хз чо
+    # "ALT_HOLD"  - хз чо
+    # "RTL" - Return To Launch
+    # "LAND" - посадка
+    def setMode(self, mode):
+        self.vehicle.mode = VehicleMode(mode)
+
     def simpleArm(self):
-
-        print('arm it full!!!')
-
         # выставить какой-то важный режим
         #self.PX4setMode(self.MAV_MODE_AUTO)
 
@@ -106,31 +139,27 @@ class DroneKit:
         time.sleep(2)
         '''
         print("Предполетные проверки")
+        if self.preArm():
+            print("Запускаем двигатели")
+            self.setMode("GUIDED_NOGPS")
+            if self.arm():
 
-        while not self.vehicle.is_armable:
-            print("Ждем коптер...")
-            time.sleep(1)
+                time.sleep(3) # подождать!
 
-        print("Запускаем двигатели")
+                print("Взлет!")
+                #self.vehicle.simple_takeoff(1) # взлететь!
+                #self.vehicle.channels.overrides['3'] = 1200
+                self.vehicle.channel_override = { "3" : 1130 }
+                self.vehicle.flush()
 
-        # Arm vehicle
-        self.vehicle.mode = VehicleMode("GUIDED")
-        #self.vehicle.mode = VehicleMode("STABILIZE")
-        # ALT_HOLD
-        # vehicle.mode = VehicleMode("RTL") # Return To Launch
-        self.vehicle.armed = True
+                time.sleep(15) # подождать!
+                self.setMode("LAND") # вот такой интересный способ сесть
+                if self.disArm():
+                    print('done!!!')
+                    return True
+        print('Что-то поломалось! =(')
+        return False
 
-        while not self.vehicle.armed:
-            print(" Ждем моторы...")
-            time.sleep(1)
-
-        print("Взлет!")
-
-        self.vehicle.simple_takeoff(0.5)
-
-        time.sleep(5)
-
-        self.vehicle.mode = VehicleMode("LAND")
 
         '''
         # monitor mission execution
@@ -147,11 +176,6 @@ class DroneKit:
             time.sleep(1)
         '''
 
-        # Disarm vehicle
-        self.vehicle.armed = False
-        time.sleep(1)
-
-        print('done!!!')
 
 '''
 ################################################################################################
