@@ -46,6 +46,9 @@ class DroneKit:
         print(" Armed: %s" % self.vehicle.armed)
         # Режим в котором сейчас находимся
         print(" Mode: %s" % self.vehicle.mode.name)
+
+        print(self.vehicle.channels)
+
         return None
 
     def __del__(self):
@@ -110,6 +113,7 @@ class DroneKit:
     # "ALT_HOLD"  - хз чо
     # "RTL" - Return To Launch
     # "LAND" - посадка
+    # "LOITER" - хз чо
     def setMode(self, mode):
         self.vehicle.mode = VehicleMode(mode)
 
@@ -141,18 +145,18 @@ class DroneKit:
         print("Предполетные проверки")
         if self.preArm():
             print("Запускаем двигатели")
-            self.setMode("GUIDED_NOGPS")
+            self.setMode("LOITER")
             if self.arm():
 
                 time.sleep(3) # подождать!
 
                 print("Взлет!")
-                #self.vehicle.simple_takeoff(1) # взлететь!
+                self.vehicle.simple_takeoff(0.3) # взлететь!
                 #self.vehicle.channels.overrides['3'] = 1200
-                self.vehicle.channel_override = { "3" : 1130 }
+                #self.vehicle.channel_override = { "3" : 1130 }
                 self.vehicle.flush()
 
-                time.sleep(15) # подождать!
+                time.sleep(10) # подождать!
                 self.setMode("LAND") # вот такой интересный способ сесть
                 if self.disArm():
                     print('done!!!')

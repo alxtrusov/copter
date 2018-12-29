@@ -1,3 +1,5 @@
+import requests
+import json
 from .DroneKit import DroneKit
 
 # автопилот
@@ -70,5 +72,12 @@ class Pilot:
         return False
 
     def simpleArm(self, options):
+        try: 
+            print('send to: http://46.61.183.14:3000/wind')
+            r = requests.get('http://46.61.183.14:3000/wind', timeout=1)
+            if r.status_code == 200:
+                print(json.loads(r.text))
+        except requests.exceptions.RequestException as e:
+            print(e)
         self.droneKit.simpleArm()
         return True
